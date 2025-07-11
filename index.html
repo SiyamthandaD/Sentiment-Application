@@ -1,0 +1,1948 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Home - Sentiment Analysis Dashboard</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+        <!-- Font Awesome Library -->
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+            integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer" />
+
+        <link rel="stylesheet" href="/css/style_2.css" />
+        <script>
+            // Tailwind CSS configuration
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        fontFamily: {
+                            inter: ["Inter", "sans-serif"]
+                        }
+                    }
+                }
+            };
+        </script>
+    </head>
+    <body class="font-inter">
+        <nav class="bg-gray-800 text-white shadow-md">
+            <div class="max-w-7xl mx-auto flex justify-between items-center px-4 py-4">
+                <a
+                    href="index.html"
+                    class="text-3xl font-extrabold text-blue-300 hover:text-blue-200 transition duration-300"
+                    >Sentiment Analyzer</a
+                >
+                <div>
+                    <a href="about.html" class="ml-6 text-lg hover:text-blue-300 transition duration-300">About</a>
+                    <a href="index.html" class="ml-6 text-lg font-bold text-blue-400">Dashboard</a>
+                    <a href="history.html" class="ml-6 text-lg hover:text-blue-300 transition duration-300">History</a>
+                </div>
+            </div>
+        </nav>
+
+        <div class="main-content-wrapper">
+            <div class="dashboard-container">
+                <h1 class="text-4xl font-extrabold text-center text-gray-800 mb-6">Sentiment Analyzer</h1>
+
+                <div class="flex border-b-2 border-gray-200 mb-6 space-x-4">
+                    <button id="text-tab" class="tab-button active" data-tab="text-input-section">Text Input</button>
+                    <button id="file-tab" class="tab-button" data-tab="file-upload-section">Batch Processing</button>
+                    <button id="evaluation-tab" class="tab-button" data-tab="evaluation-section">
+                        Model Evaluation
+                    </button>
+                    <!-- Add this to the tab navigation section (around line 180) -->
+                    <button id="compare-tab" class="tab-button" data-tab="compare-section">Comparative Analysis</button>
+                </div>
+
+                <div id="text-input-section" class="tab-content active">
+                    <div class="input-section">
+                        <label for="text-input" class="block text-gray-700 text-lg font-semibold mb-2"
+                            >Enter your text here:</label
+                        >
+                        <textarea
+                            id="text-input"
+                            class="w-full p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
+                            placeholder="e.g., 'The customer service was excellent, and the product exceeded my expectations!'"
+                            rows="6"></textarea>
+                    </div>
+
+                    <button
+                        id="analyze-button"
+                        class="bg-blue-600 text-white font-bold py-3 px-6 rounded-xl shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center justify-center">
+                        <span id="button-text"
+                            ><i class="fa-solid fa-magnifying-glass-chart"></i> Analyze Sentiment</span
+                        >
+                        <span id="loading-indicator" class="loading-spinner hidden"></span>
+                    </button>
+                </div>
+
+                <div id="file-upload-section" class="tab-content">
+                    <div class="file-upload-container" id="file-upload-container">
+                        <label class="file-upload-label">
+                            <svg
+                                class="file-upload-icon"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                            </svg>
+                            <span class="text-gray-700 font-medium">Drag and drop your file here</span>
+                            <span class="text-gray-500 text-sm">or click to browse</span>
+                            <input type="file" id="file-input" class="hidden" accept=".txt,.csv,.json" />
+                        </label>
+                        <div id="file-info" class="file-info hidden"></div>
+                    </div>
+
+                    <p class="text-sm text-center text-gray-500 my-2">
+                        Note: For demonstration purposes, batch analysis is limited to the first 20 text entries in the
+                        file.
+                    </p>
+
+                    <button
+                        id="analyze-file-button"
+                        class="bg-blue-600 text-white font-bold py-3 px-6 rounded-xl shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center justify-center">
+                        <span id="file-button-text">Analyze File</span>
+                        <span id="file-loading-indicator" class="loading-spinner hidden"></span>
+                    </button>
+
+                    <div id="batch-results" class="batch-results hidden">
+                        <h3 class="text-lg font-semibold mb-2">Batch Analysis Results</h3>
+                        <div id="batch-results-list"></div>
+                    </div>
+                </div>
+
+                <div id="evaluation-section" class="tab-content">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-3">Model Evaluation</h2>
+                    <div class="input-section mb-4">
+                        <label for="eval-text-input" class="block text-gray-700 text-lg font-semibold mb-2"
+                            >Text for Evaluation:</label
+                        >
+                        <textarea
+                            id="eval-text-input"
+                            class="w-full p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
+                            placeholder="e.g., 'This product is terrible, I regret buying it.'"
+                            rows="3"></textarea>
+                    </div>
+                    <div class="input-section mb-6">
+                        <label for="true-sentiment-select" class="block text-gray-700 text-lg font-semibold mb-2"
+                            >True Sentiment:</label
+                        >
+                        <select
+                            id="true-sentiment-select"
+                            class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200 bg-white">
+                            <option value="">Select True Sentiment</option>
+                            <option value="positive">Positive</option>
+                            <option value="negative">Negative</option>
+                            <option value="neutral">Neutral</option>
+                        </select>
+                    </div>
+                    <button
+                        id="add-to-eval-button"
+                        class="bg-purple-600 text-white font-bold py-3 px-6 rounded-xl shadow-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 flex items-center justify-center mb-6">
+                        <span id="eval-button-text">Add to Evaluation Data</span>
+                        <span id="eval-loading-indicator" class="loading-spinner hidden"></span>
+                    </button>
+
+                    <div id="evaluation-data-list" class="batch-results mb-6 hidden">
+                        <h3 class="text-lg font-semibold mb-2">Collected Evaluation Data:</h3>
+                        <ul id="eval-list" class="list-disc pl-5"></ul>
+                    </div>
+
+                    <button
+                        id="calculate-metrics-button"
+                        class="bg-green-600 text-white font-bold py-3 px-6 rounded-xl shadow-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 flex items-center justify-center mb-6 hidden">
+                        Calculate Performance Metrics
+                    </button>
+
+                    <div id="metrics-results-section" class="results-section mt-4 hidden">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-3">Performance Metrics:</h2>
+                        <div id="confusion-matrix-container" class="result-box mb-4">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-2">Confusion Matrix:</h3>
+                            <table
+                                id="confusion-matrix-table"
+                                class="min-w-full bg-white border border-gray-300 rounded-lg shadow-sm">
+                                <thead>
+                                    <tr class="bg-gray-100">
+                                        <th class="py-2 px-4 border-b">Predicted \ True</th>
+                                        <th class="py-2 px-4 border-b">Positive</th>
+                                        <th class="py-2 px-4 border-b">Negative</th>
+                                        <th class="py-2 px-4 border-b">Neutral</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <th class="py-2 px-4 border-b">Positive</th>
+                                        <td id="cm-pp" class="py-2 px-4 border-b">0</td>
+                                        <td id="cm-pn" class="py-2 px-4 border-b">0</td>
+                                        <td id="cm-p-neu" class="py-2 px-4 border-b">0</td>
+                                    </tr>
+                                    <tr>
+                                        <th class="py-2 px-4 border-b">Negative</th>
+                                        <td id="cm-np" class="py-2 px-4 border-b">0</td>
+                                        <td id="cm-nn" class="py-2 px-4 border-b">0</td>
+                                        <td id="cm-n-neu" class="py-2 px-4 border-b">0</td>
+                                    </tr>
+                                    <tr>
+                                        <th class="py-2 px-4 border-b">Neutral</th>
+                                        <td id="cm-neu-p" class="py-2 px-4 border-b">0</td>
+                                        <td id="cm-neu-n" class="py-2 px-4 border-b">0</td>
+                                        <td id="cm-neu-neu" class="py-2 px-4 border-b">0</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div id="overall-metrics-container" class="result-box mb-4">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-2">Overall Metrics:</h3>
+                            <p class="text-gray-700 text-lg">
+                                <strong class="text-gray-900">Accuracy:</strong> <span id="accuracy-score">N/A</span>
+                            </p>
+                        </div>
+
+                        <div id="class-metrics-container" class="result-box">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-2">Metrics per Class:</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <h4 class="font-medium text-gray-800">Positive Class:</h4>
+                                    <p>Precision: <span id="pos-precision">N/A</span></p>
+                                    <p>Recall: <span id="pos-recall">N/A</span></p>
+                                    <p>F1-Score: <span id="pos-f1">N/A</span></p>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium text-gray-800">Negative Class:</h4>
+                                    <p>Precision: <span id="neg-precision">N/A</span></p>
+                                    <p>Recall: <span id="neg-recall">N/A</span></p>
+                                    <p>F1-Score: <span id="neg-f1">N/A</span></p>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium text-gray-800">Neutral Class:</h4>
+                                    <p>Precision: <span id="neu-precision">N/A</span></p>
+                                    <p>Recall: <span id="neu-recall">N/A</span></p>
+                                    <p>F1-Score: <span id="neu-f1">N/A</span></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div
+                        id="eval-error-message"
+                        class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg mt-4 hidden"
+                        role="alert">
+                        <p class="font-bold">Error:</p>
+                        <p id="eval-error-text"></p>
+                    </div>
+                </div>
+
+                <!-- Add this tab content section after the evaluation section (around line 400) -->
+                <div id="compare-section" class="tab-content">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-3">Comparative Analysis</h2>
+
+                    <div class="mb-6">
+                        <div id="compare-inputs-container">
+                            <div class="compare-input-group mb-4">
+                                <label class="block text-gray-700 text-lg font-semibold mb-2">Text 1:</label>
+                                <textarea
+                                    class="compare-text-input w-full p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
+                                    placeholder="Enter first text to compare"
+                                    rows="3"></textarea>
+                                <button
+                                    class="remove-compare-input bg-red-500 text-white py-1 px-3 rounded-lg text-sm mt-2 hidden">
+                                    Remove
+                                </button>
+                            </div>
+                        </div>
+
+                        <button
+                            id="add-compare-input"
+                            class="bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg hover:bg-gray-300">
+                            + Add Another Text
+                        </button>
+                    </div>
+
+                    <button
+                        id="analyze-compare-button"
+                        class="bg-blue-600 text-white font-bold py-3 px-6 rounded-xl shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center justify-center">
+                        <span id="compare-button-text">Compare Texts</span>
+                        <span id="compare-loading-indicator" class="loading-spinner hidden"></span>
+                    </button>
+
+                    <div id="compare-results" class="mt-6 hidden">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4">Comparison Results</h3>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div class="bg-white p-4 rounded-xl shadow">
+                                <h4 class="font-bold text-lg mb-2">Sentiment Scores</h4>
+                                <div class="chart-container" style="height: 300px">
+                                    <canvas id="compareBarChart"></canvas>
+                                </div>
+                            </div>
+
+                            <div class="bg-white p-4 rounded-xl shadow">
+                                <h4 class="font-bold text-lg mb-2">Emotion Distribution</h4>
+                                <div class="chart-container" style="height: 300px">
+                                    <canvas id="compareRadarChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-4 rounded-xl shadow">
+                            <h4 class="font-bold text-lg mb-2">Detailed Comparison</h4>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full bg-white border border-gray-200">
+                                    <thead>
+                                        <tr class="bg-gray-100">
+                                            <th class="py-2 px-4 border-b text-left">Metric</th>
+                                            <th id="compare-header-1" class="py-2 px-4 border-b text-left">Text 1</th>
+                                            <th id="compare-header-2" class="py-2 px-4 border-b text-left hidden">
+                                                Text 2
+                                            </th>
+                                            <th id="compare-header-3" class="py-2 px-4 border-b text-left hidden">
+                                                Text 3
+                                            </th>
+                                            <th id="compare-header-4" class="py-2 px-4 border-b text-left hidden">
+                                                Text 4
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td class="py-2 px-4 border-b">Overall Sentiment</td>
+                                            <td id="compare-sentiment-1" class="py-2 px-4 border-b"></td>
+                                            <td id="compare-sentiment-2" class="py-2 px-4 border-b hidden"></td>
+                                            <td id="compare-sentiment-3" class="py-2 px-4 border-b hidden"></td>
+                                            <td id="compare-sentiment-4" class="py-2 px-4 border-b hidden"></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-2 px-4 border-b">Sentiment Score</td>
+                                            <td id="compare-score-1" class="py-2 px-4 border-b"></td>
+                                            <td id="compare-score-2" class="py-2 px-4 border-b hidden"></td>
+                                            <td id="compare-score-3" class="py-2 px-4 border-b hidden"></td>
+                                            <td id="compare-score-4" class="py-2 px-4 border-b hidden"></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-2 px-4 border-b">Dominant Emotion</td>
+                                            <td id="compare-emotion-1" class="py-2 px-4 border-b"></td>
+                                            <td id="compare-emotion-2" class="py-2 px-4 border-b hidden"></td>
+                                            <td id="compare-emotion-3" class="py-2 px-4 border-b hidden"></td>
+                                            <td id="compare-emotion-4" class="py-2 px-4 border-b hidden"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div
+                        id="compare-error-message"
+                        class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg mt-4 hidden"
+                        role="alert">
+                        <p class="font-bold">Error:</p>
+                        <p id="compare-error-text"></p>
+                    </div>
+                </div>
+
+                <div id="results-section" class="results-section mt-4 hidden">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-3">Analysis Results:</h2>
+                    <div id="sentiment-result" class="result-box">
+                        <p class="text-gray-700 text-lg">
+                            <strong class="text-gray-900">Overall Sentiment:</strong>
+                            <span id="overall-sentiment"></span>
+                        </p>
+                        <p class="text-gray-700 text-lg">
+                            <strong class="text-gray-900">Sentiment Score:</strong> <span id="sentiment-score"></span>
+                        </p>
+                        <p class="text-gray-700 text-lg">
+                            <strong class="text-gray-900">Emotional Tone:</strong> <span id="emotional-tone"></span>
+                        </p>
+                        <div id="emotions-container" class="mt-2 flex flex-wrap"></div>
+
+                        <div class="mt-4">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-2">Sentiment-Driving Keywords:</h3>
+                            <div id="keywords-container" class="flex flex-wrap gap-2"></div>
+                        </div>
+
+                        <div class="visualization-tabs mt-4">
+                            <button class="tab-button active" data-tab="bar-chart">Emotion Intensity</button>
+                            <button class="tab-button" data-tab="pie-chart">Emotion Distribution</button>
+                            <button class="tab-button" data-tab="radar-chart">Emotion Profile</button>
+                        </div>
+
+                        <div id="bar-chart" class="tab-content active">
+                            <div class="chart-title">Emotion Intensity Chart</div>
+                            <div class="chart-container"><canvas id="emotionBarChart"></canvas></div>
+                        </div>
+                        <div id="pie-chart" class="tab-content">
+                            <div class="chart-title">Emotion Distribution</div>
+                            <div class="chart-container"><canvas id="emotionPieChart"></canvas></div>
+                        </div>
+                        <div id="radar-chart" class="tab-content">
+                            <div class="chart-title">Emotion Profile Radar</div>
+                            <div class="chart-container"><canvas id="emotionRadarChart"></canvas></div>
+                        </div>
+                    </div>
+
+                    <button
+                        id="clear-button"
+                        class="bg-gray-500 text-white font-bold py-2 px-4 rounded-xl shadow-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 self-center mt-4 hidden">
+                        Clear Analysis
+                    </button>
+
+                    <div class="download-button-wrapper self-center mt-4 hidden" id="download-button-wrapper">
+                        <button
+                            id="download-report-button"
+                            class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-xl shadow-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 flex items-center gap-2">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                class="h-5 w-5"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            Download Report
+                        </button>
+
+                        <div
+                            id="download-options"
+                            class="hidden bg-white rounded-lg shadow-lg p-4 w-64 border border-gray-200">
+                            <h3 class="font-semibold text-gray-800 mb-2">Export Format:</h3>
+                            <button
+                                class="download-option-btn w-full text-left px-3 py-2 hover:bg-gray-100 rounded-md flex items-center gap-2"
+                                data-format="pdf">
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    class="h-5 w-5 text-red-500"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                </svg>
+                                PDF Report
+                            </button>
+                            <button
+                                class="download-option-btn w-full text-left px-3 py-2 hover:bg-gray-100 rounded-md flex items-center gap-2"
+                                data-format="json">
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    class="h-5 w-5 text-yellow-500"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                JSON Data
+                            </button>
+                            <button
+                                class="download-option-btn w-full text-left px-3 py-2 hover:bg-gray-100 rounded-md flex items-center gap-2"
+                                data-format="csv">
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    class="h-5 w-5 text-green-500"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                CSV Data
+                            </button>
+                        </div>
+                    </div>
+                    <div
+                        id="error-message"
+                        class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg mt-4 hidden"
+                        role="alert">
+                        <p class="font-bold">Error:</p>
+                        <p id="error-text"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <footer>
+            <p>&copy; 2025 Sentiment Analyzer ❤️ All rights reserved.</p>
+        </footer>
+
+        <script type="module">
+            import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
+
+            document.addEventListener("DOMContentLoaded", () => {
+                // --- Constants and Configuration ---
+                // =================================================================================
+                // === IMPORTANT: PASTE YOUR GOOGLE GEMINI API KEY HERE =============================
+                // =================================================================================
+                const API_KEY = "AIzaSyArNd3AV-Iclw46t1eMd7aOY8q3HQMCA9I"; // Replace with your actual API key
+                // =================================================================================
+                const GENERATIVE_MODEL = "gemini-2.0-flash";
+                const BATCH_ANALYSIS_LIMIT = 20; // Limit for demonstration purposes
+
+                // --- Caching DOM Elements ---
+                const DOMElements = {
+                    textInput: document.getElementById("text-input"),
+                    analyzeButton: document.getElementById("analyze-button"),
+                    buttonText: document.getElementById("button-text"),
+                    loadingIndicator: document.getElementById("loading-indicator"),
+                    resultsSection: document.getElementById("results-section"),
+                    overallSentimentSpan: document.getElementById("overall-sentiment"),
+                    sentimentScoreSpan: document.getElementById("sentiment-score"),
+                    emotionalToneSpan: document.getElementById("emotional-tone"),
+                    emotionsContainer: document.getElementById("emotions-container"),
+                    keywordsContainer: document.getElementById("keywords-container"),
+                    sentimentResultBox: document.getElementById("sentiment-result"),
+                    errorMessageDiv: document.getElementById("error-message"),
+                    errorTextSpan: document.getElementById("error-text"),
+                    clearButton: document.getElementById("clear-button"),
+                    downloadReportButton: document.getElementById("download-report-button"),
+                    downloadOptions: document.getElementById("download-options"),
+                    downloadButtonWrapper: document.getElementById("download-button-wrapper"), // New element reference
+                    compareTab: document.getElementById("compare-tab"),
+                    compareSection: document.getElementById("compare-section"),
+                    compareInputsContainer: document.getElementById("compare-inputs-container"),
+                    addCompareInputBtn: document.getElementById("add-compare-input"),
+                    analyzeCompareButton: document.getElementById("analyze-compare-button"),
+                    compareButtonText: document.getElementById("compare-button-text"),
+                    compareLoadingIndicator: document.getElementById("compare-loading-indicator"),
+                    compareResults: document.getElementById("compare-results"),
+                    compareErrorMessageDiv: document.getElementById("compare-error-message"),
+                    compareErrorTextSpan: document.getElementById("compare-error-text"),
+
+                    // File upload elements
+                    fileInput: document.getElementById("file-input"),
+                    fileUploadContainer: document.getElementById("file-upload-container"),
+                    fileInfo: document.getElementById("file-info"),
+                    analyzeFileButton: document.getElementById("analyze-file-button"),
+                    fileButtonText: document.getElementById("file-button-text"),
+                    fileLoadingIndicator: document.getElementById("file-loading-indicator"),
+                    batchResults: document.getElementById("batch-results"),
+                    batchResultsList: document.getElementById("batch-results-list"),
+
+                    // Tab elements
+                    textTab: document.getElementById("text-tab"),
+                    fileTab: document.getElementById("file-tab"),
+                    evaluationTab: document.getElementById("evaluation-tab"),
+                    textInputSection: document.getElementById("text-input-section"),
+                    fileUploadSection: document.getElementById("file-upload-section"),
+                    evaluationSection: document.getElementById("evaluation-section"),
+                    tabButtons: document.querySelectorAll(".tab-button"),
+                    tabContents: document.querySelectorAll(".tab-content"),
+
+                    // Visualization Tabs (internal to results-section)
+                    vizTabButtons: document.querySelectorAll(".visualization-tabs .tab-button"),
+                    vizTabContents: document.querySelectorAll('.results-section .tab-content[id$="chart"]'),
+
+                    // Comparative Analysis elements
+                    compareTab: document.getElementById("compare-tab"),
+                    compareSection: document.getElementById("compare-section"),
+                    compareInputsContainer: document.getElementById("compare-inputs-container"),
+                    addCompareInputBtn: document.getElementById("add-compare-input"),
+                    analyzeCompareButton: document.getElementById("analyze-compare-button"),
+                    compareButtonText: document.getElementById("compare-button-text"),
+                    compareLoadingIndicator: document.getElementById("compare-loading-indicator"),
+                    compareResults: document.getElementById("compare-results"),
+                    compareErrorMessageDiv: document.getElementById("compare-error-message"),
+                    compareErrorTextSpan: document.getElementById("compare-error-text"),
+
+                    // Model Evaluation DOM Elements
+                    evalTextInput: document.getElementById("eval-text-input"),
+                    trueSentimentSelect: document.getElementById("true-sentiment-select"),
+                    addToEvalButton: document.getElementById("add-to-eval-button"),
+                    evalButtonText: document.getElementById("eval-button-text"),
+                    evalLoadingIndicator: document.getElementById("eval-loading-indicator"),
+                    evaluationDataList: document.getElementById("evaluation-data-list"),
+                    evalList: document.getElementById("eval-list"),
+                    calculateMetricsButton: document.getElementById("calculate-metrics-button"),
+                    metricsResultsSection: document.getElementById("metrics-results-section"),
+                    accuracyScoreSpan: document.getElementById("accuracy-score"),
+                    posPrecisionSpan: document.getElementById("pos-precision"),
+                    posRecallSpan: document.getElementById("pos-recall"),
+                    posF1Span: document.getElementById("pos-f1"),
+                    negPrecisionSpan: document.getElementById("neg-precision"),
+                    negRecallSpan: document.getElementById("neg-recall"),
+                    negF1Span: document.getElementById("neg-f1"),
+                    neuPrecisionSpan: document.getElementById("neu-precision"),
+                    neuRecallSpan: document.getElementById("neu-recall"),
+                    neuF1Span: document.getElementById("neu-f1"),
+                    evalErrorMessageDiv: document.getElementById("eval-error-message"),
+                    evalErrorTextSpan: document.getElementById("eval-error-text")
+                };
+
+                let emotionBarChart, emotionPieChart, emotionRadarChart;
+                let currentFile = null;
+                let evaluationData = [];
+                let lastAnalysisResult = null; // Store the last analysis result for PDF export
+                let compareBarChart, compareRadarChart;
+                let batchResults = [];
+
+                const genAI = new GoogleGenerativeAI(API_KEY);
+                const model = genAI.getGenerativeModel({ model: GENERATIVE_MODEL });
+
+                // --- Utility Functions ---
+                function showLoading(buttonTextElement, loadingIndicatorElement) {
+                    buttonTextElement.classList.add("hidden");
+                    loadingIndicatorElement.classList.remove("hidden");
+                    loadingIndicatorElement.classList.add("animate-pulse");
+                }
+
+                function hideLoading(buttonTextElement, loadingIndicatorElement) {
+                    buttonTextElement.classList.remove("hidden");
+                    loadingIndicatorElement.classList.add("hidden");
+                    loadingIndicatorElement.classList.remove("animate-pulse");
+                }
+
+                function displayError(message, errorDiv, errorTextSpan) {
+                    errorTextSpan.textContent = message;
+                    errorDiv.classList.remove("hidden");
+                }
+
+                function hideError(errorDiv) {
+                    errorDiv.classList.add("hidden");
+                    errorDiv.querySelector("p:last-child").textContent = "";
+                }
+
+                // --- Utility Function for Delay ---
+                function delay(ms) {
+                    return new Promise((resolve) => setTimeout(resolve, ms));
+                }
+
+                // --- File Analysis Logic ---
+                let fileContent = null; // Declare fileContent globally or within the DOMContentLoaded scope
+
+                async function handleFileAnalysis() {
+                    if (!API_KEY) {
+                        displayError(
+                            "API Key is missing. Please add your Google Gemini API key to the script.",
+                            DOMElements.errorMessageDiv,
+                            DOMElements.errorTextSpan
+                        );
+                        return;
+                    }
+
+                    if (!currentFile) {
+                        displayError(
+                            "Please select a file first.",
+                            DOMElements.errorMessageDiv,
+                            DOMElements.errorTextSpan
+                        );
+                        return;
+                    }
+
+                    showLoading(DOMElements.fileButtonText, DOMElements.fileLoadingIndicator);
+                    hideError(DOMElements.errorMessageDiv);
+                    DOMElements.batchResults.classList.add("hidden");
+                    DOMElements.batchResultsList.innerHTML = "";
+
+                    try {
+                        const fileText = await readFileAsText(currentFile);
+                        const lines = fileText
+                            .split("\n")
+                            .map((line) => line.trim())
+                            .filter((line) => line !== "");
+
+                        if (lines.length === 0) {
+                            throw new Error("File is empty or contains no valid text lines.");
+                        }
+
+                        // Process lines with limit
+                        const linesToProcess = lines.slice(0, BATCH_ANALYSIS_LIMIT);
+                        const results = [];
+
+                        for (const line of linesToProcess) {
+                            try {
+                                const analysis = await getSentimentAnalysis(line);
+                                results.push({
+                                    text: line,
+                                    sentiment: analysis.overall_sentiment,
+                                    confidence: analysis.sentiment_score,
+                                    emotions: analysis.emotions,
+                                    evaluation_score: analysis.sentiment_score // Added to match your existing structure
+                                });
+                            } catch (error) {
+                                console.error(`Error analyzing line: "${line.substring(0, 50)}..."`, error);
+                                results.push({
+                                    text: line,
+                                    error: true,
+                                    message: error.message,
+                                    overall_sentiment: "error",
+                                    sentiment_score: 0,
+                                    emotions: {}
+                                });
+                            }
+                            // Add small delay between API calls to avoid rate limiting
+                            await delay(300);
+                        }
+
+                        if (results.length > 0) {
+                            generateFileResultsHTML(results);
+                            DOMElements.batchResults.classList.remove("hidden");
+
+                            // Save to history (matches your existing saveToHistory function)
+                            saveToHistory(
+                                {
+                                    overall_sentiment: results[0].sentiment || "neutral",
+                                    sentiment_score: results[0].confidence || 0,
+                                    emotions: results[0].emotions || {},
+                                    keywords: []
+                                },
+                                `Batch analysis (${results.length} items)`,
+                                true,
+                                results
+                            );
+                        } else {
+                            throw new Error("No valid results generated from the file.");
+                        }
+                    } catch (error) {
+                        displayError(
+                            `Error processing file: ${error.message}`,
+                            DOMElements.errorMessageDiv,
+                            DOMElements.errorTextSpan
+                        );
+                    } finally {
+                        hideLoading(DOMElements.fileButtonText, DOMElements.fileLoadingIndicator);
+                    }
+                }
+
+                // Add this helper function near your other utility functions
+                function readFileAsText(file) {
+                    return new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = (e) => resolve(e.target.result);
+                        reader.onerror = (e) => reject(new Error("Failed to read file"));
+                        reader.readAsText(file);
+                    });
+                }
+
+                function generateFileResultsHTML(results) {
+                    const resultsList = DOMElements.batchResultsList;
+                    resultsList.innerHTML = ""; // Clear previous results
+
+                    if (results.length === 0) {
+                        resultsList.innerHTML = '<p class="text-gray-500">No analysis results to display.</p>';
+                        return;
+                    }
+
+                    results.forEach((result, index) => {
+                        const listItem = document.createElement("div");
+                        listItem.className = "bg-gray-50 p-4 rounded-lg shadow-sm mb-3";
+                        let sentimentText = "N/A";
+                        let sentimentClass = "text-gray-700";
+
+                        if (result.sentiment) {
+                            sentimentText = result.sentiment.charAt(0).toUpperCase() + result.sentiment.slice(1);
+                            if (result.sentiment === "positive") sentimentClass = "text-green-600 font-semibold";
+                            else if (result.sentiment === "negative") sentimentClass = "text-red-600 font-semibold";
+                            else if (result.sentiment === "neutral") sentimentClass = "text-blue-600 font-semibold";
+                        }
+
+                        listItem.innerHTML = `
+                        <p class="text-sm text-gray-500 mb-1">Line ${index + 1}:</p>
+                        <p class="text-lg mb-2"><strong class="text-gray-800">Sentiment:</strong> <span class="${sentimentClass}">${sentimentText}</span></p>
+                        <p class="text-md text-gray-700">Confidence: ${(result.confidence * 100).toFixed(2)}%</p>
+                        <p class="text-md text-gray-700">Evaluation Score: ${result.evaluation_score !== null ? result.evaluation_score : "N/A"}</p>
+                        <div class="mt-2 text-sm text-gray-600">
+                            <strong>Emotions:</strong>
+                            ${Object.entries(result)
+                                .map(([key, value]) => {
+                                    if (
+                                        [
+                                            "joy",
+                                            "anger",
+                                            "sadness",
+                                            "fear",
+                                            "surprise",
+                                            "disgust",
+                                            "anticipation",
+                                            "trust"
+                                        ].includes(key)
+                                    ) {
+                                        return `<span>${key.charAt(0).toUpperCase() + key.slice(1)}: ${(value * 100).toFixed(0)}% </span>`;
+                                    }
+                                    return "";
+                                })
+                                .join("")}
+                        </div>
+                    `;
+                        resultsList.appendChild(listItem);
+                    });
+                }
+
+                function resetUI() {
+                    DOMElements.textInput.value = "";
+                    DOMElements.resultsSection.classList.add("hidden");
+                    DOMElements.clearButton.classList.add("hidden");
+                    DOMElements.downloadButtonWrapper.classList.add("hidden"); // Hide the new wrapper
+                    DOMElements.downloadOptions.classList.add("hidden"); // Ensure options are hidden
+                    hideError(DOMElements.errorMessageDiv);
+                    resetMetricsDisplay(); // Clears evaluation data and metrics
+                    currentFile = null;
+                    DOMElements.fileInfo.classList.add("hidden");
+                    DOMElements.fileInfo.textContent = "";
+                    DOMElements.analyzeFileButton.disabled = true;
+                    DOMElements.batchResults.classList.add("hidden");
+                    DOMElements.batchResultsList.innerHTML = "";
+                    if (emotionBarChart) emotionBarChart.destroy();
+                    if (emotionPieChart) emotionPieChart.destroy();
+                    if (emotionRadarChart) emotionRadarChart.destroy();
+                    lastAnalysisResult = null;
+                    // Ensure main tabs are reset to text input (optional, but good UX)
+                    DOMElements.tabButtons.forEach((btn) => btn.classList.remove("active"));
+                    DOMElements.tabContents.forEach((content) => content.classList.remove("active"));
+                    DOMElements.textTab.classList.add("active");
+                    DOMElements.textInputSection.classList.add("active");
+                }
+
+                // Add this function to your utility functions section
+                function setupComparativeAnalysis() {
+                    // Add event listener for adding new comparison inputs
+                    DOMElements.addCompareInputBtn.addEventListener("click", () => {
+                        const inputCount = document.querySelectorAll(".compare-input-group").length;
+                        if (inputCount >= 4) {
+                            displayError(
+                                "Maximum of 4 texts can be compared at once.",
+                                DOMElements.compareErrorMessageDiv,
+                                DOMElements.compareErrorTextSpan
+                            );
+                            return;
+                        }
+
+                        const newInputGroup = document.createElement("div");
+                        newInputGroup.className = "compare-input-group mb-4";
+                        newInputGroup.innerHTML = `
+                <label class="block text-gray-700 text-lg font-semibold mb-2">Text ${inputCount + 1}:</label>
+                <textarea class="compare-text-input w-full p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
+                          placeholder="Enter text to compare" rows="3"></textarea>
+                <button class="remove-compare-input bg-red-500 text-white py-1 px-3 rounded-lg text-sm mt-2">Remove</button>
+            `;
+
+                        DOMElements.compareInputsContainer.appendChild(newInputGroup);
+
+                        // Show remove buttons when there's more than one input
+                        if (inputCount >= 1) {
+                            document
+                                .querySelectorAll(".remove-compare-input")
+                                .forEach((btn) => btn.classList.remove("hidden"));
+                        }
+                    });
+
+                    // Event delegation for remove buttons
+                    DOMElements.compareInputsContainer.addEventListener("click", (e) => {
+                        if (e.target.classList.contains("remove-compare-input")) {
+                            const inputGroup = e.target.closest(".compare-input-group");
+                            inputGroup.remove();
+
+                            // Update labels
+                            document.querySelectorAll(".compare-input-group").forEach((group, index) => {
+                                group.querySelector("label").textContent = `Text ${index + 1}:`;
+                            });
+
+                            // Hide remove buttons if only one input remains
+                            if (document.querySelectorAll(".compare-input-group").length <= 1) {
+                                document.querySelector(".remove-compare-input").classList.add("hidden");
+                            }
+                        }
+                    });
+
+                    // Analyze comparison button
+                    DOMElements.analyzeCompareButton.addEventListener("click", analyzeComparison);
+                }
+
+                async function analyzeComparison() {
+                    const textInputs = document.querySelectorAll(".compare-text-input");
+                    const texts = Array.from(textInputs)
+                        .map((input) => input.value.trim())
+                        .filter((text) => text !== "");
+
+                    if (texts.length < 2) {
+                        displayError(
+                            "Please enter at least 2 texts to compare.",
+                            DOMElements.compareErrorMessageDiv,
+                            DOMElements.compareErrorTextSpan
+                        );
+                        return;
+                    }
+
+                    showLoading(DOMElements.compareButtonText, DOMElements.compareLoadingIndicator);
+                    DOMElements.compareResults.classList.add("hidden");
+                    hideError(DOMElements.compareErrorMessageDiv);
+
+                    try {
+                        const analyses = [];
+
+                        // Analyze each text
+                        for (const text of texts) {
+                            try {
+                                const analysis = await getSentimentAnalysis(text);
+                                analyses.push(analysis);
+                                console.log(`Analysis completed for text: ${text.substring(0, 50)}...`);
+                            } catch (error) {
+                                console.error(`Error analyzing text: ${text.substring(0, 50)}...`, error);
+                                // Push a placeholder with error information
+                                analyses.push({
+                                    error: true,
+                                    message: error.message,
+                                    text: text,
+                                    overall_sentiment: "error",
+                                    sentiment_score: 0,
+                                    emotions: {}
+                                });
+                            }
+                        }
+                        // Display comparison results
+                        displayComparisonResults(texts, analyses);
+                    } catch (error) {
+                        displayError(
+                            `Error during comparison: ${error.message}`,
+                            DOMElements.compareErrorMessageDiv,
+                            DOMElements.compareErrorTextSpan
+                        );
+                    } finally {
+                        hideLoading(DOMElements.compareButtonText, DOMElements.compareLoadingIndicator);
+                    }
+                }
+
+                function displayComparisonResults(texts, analyses) {
+                    // Update table headers
+                    for (let i = 1; i <= 4; i++) {
+                        const header = document.getElementById(`compare-header-${i}`);
+                        const sentimentCell = document.getElementById(`compare-sentiment-${i}`);
+                        const scoreCell = document.getElementById(`compare-score-${i}`);
+                        const emotionCell = document.getElementById(`compare-emotion-${i}`);
+
+                        if (i <= texts.length) {
+                            // Show columns for texts we have
+                            header.classList.remove("hidden");
+                            sentimentCell.classList.remove("hidden");
+                            scoreCell.classList.remove("hidden");
+                            emotionCell.classList.remove("hidden");
+
+                            // Truncate text for display
+                            const displayText =
+                                texts[i - 1].length > 20 ? texts[i - 1].substring(0, 17) + "..." : texts[i - 1];
+                            header.textContent = displayText;
+                        } else {
+                            // Hide Unused columns
+                            header.classList.add("hidden");
+                            sentimentCell.classList.add("hidden");
+                            scoreCell.classList.add("hidden");
+                            emotionCell.classList.add("hidden");
+                        }
+                    }
+
+                    // Update comparison table data
+                    analyses.forEach((analysis, index) => {
+                        const sentimentCell = document.getElementById(`compare-sentiment-${index + 1}`);
+                        const scoreCell = document.getElementById(`compare-score-${index + 1}`);
+                        const emotionCell = document.getElementById(`compare-emotion-${index + 1}`);
+
+                        if (analysis.error) {
+                            // Handle error case
+                            sentimentCell.textContent = "Error";
+                            scoreCell.textContent = "N/A";
+                            emotionCell.textContent = "N/A";
+                            console.error(`Error for text ${index + 1}:`, analysis.message);
+                        } else {
+                            // Normal case
+                            sentimentCell.textContent =
+                                analysis.overall_sentiment.charAt(0).toUpperCase() +
+                                analysis.overall_sentiment.slice(1);
+
+                            scoreCell.textContent = analysis.sentiment_score.toFixed(2);
+
+                            // Find dominant emotion
+                            const emotions = analysis.emotions;
+                            if (emotions && Object.keys(emotions).length > 0) {
+                                const dominantEmotion = Object.entries(emotions).reduce((a, b) =>
+                                    a[1] > b[1] ? a : b
+                                )[0];
+                                emotionCell.textContent =
+                                    dominantEmotion.charAt(0).toUpperCase() + dominantEmotion.slice(1);
+                            } else {
+                                emotionCell.textContent = "N/A";
+                            }
+                        }
+                    });
+
+                    // Update charts
+                    updateComparisonCharts(analyses);
+
+                    // Show results section
+                    DOMElements.compareResults.classList.remove("hidden");
+                }
+
+                function updateComparisonCharts(analyses) {
+                    // Destroy existing charts if they exist
+                    if (compareBarChart) compareBarChart.destroy();
+                    if (compareRadarChart) compareRadarChart.destroy();
+
+                    // Prepare data for charts
+                    const labels = analyses.map((_, i) => `Text ${i + 1}`);
+                    const sentimentScores = analyses.map((a) => a.sentiment_score);
+
+                    // Get all unique emotions across all analyses
+                    const allEmotions = new Set();
+                    analyses.forEach((a) => {
+                        if (a.emotions) {
+                            Object.keys(a.emotions).forEach((emotion) => allEmotions.add(emotion));
+                        }
+                    });
+                    const emotionLabels = Array.from(allEmotions);
+
+                    // Prepare radar chart data
+                    const radarDatasets = analyses.map((a, i) => {
+                        const emotionValues = emotionLabels.map((emotion) =>
+                            a.emotions && a.emotions[emotion] ? a.emotions[emotion] * 100 : 0
+                        );
+                        return {
+                            label: `Text ${i + 1}`,
+                            data: emotionValues,
+                            backgroundColor: getColorForIndex(i, 0.2),
+                            borderColor: getColorForIndex(i),
+                            borderWidth: 2,
+                            pointBackgroundColor: getColorForIndex(i),
+                            pointBorderColor: "#fff",
+                            pointHoverBackgroundColor: "#fff",
+                            pointHoverBorderColor: getColorForIndex(i)
+                        };
+                    });
+
+                    // Bar Chart - Sentiment Scores
+                    const barCtx = document.getElementById("compareBarChart").getContext("2d");
+                    compareBarChart = new Chart(barCtx, {
+                        type: "bar",
+                        data: {
+                            labels: labels,
+                            datasets: [
+                                {
+                                    label: "Sentiment Score",
+                                    data: sentimentScores,
+                                    backgroundColor: labels.map((_, i) => getColorForIndex(i, 0.7)),
+                                    borderColor: labels.map((_, i) => getColorForIndex(i)),
+                                    borderWidth: 1
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    beginAtZero: false,
+                                    min: -1,
+                                    max: 1
+                                }
+                            },
+                            plugins: {
+                                legend: {
+                                    display: false
+                                }
+                            }
+                        }
+                    });
+
+                    // Radar Chart - Emotion Profiles
+                    const radarCtx = document.getElementById("compareRadarChart").getContext("2d");
+                    compareRadarChart = new Chart(radarCtx, {
+                        type: "radar",
+                        data: {
+                            labels: emotionLabels.map((e) => e.charAt(0).toUpperCase() + e.slice(1)),
+                            datasets: radarDatasets
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                r: {
+                                    beginAtZero: true,
+                                    max: 100
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // Helper function to get consistent colors for each text in comparison
+                function getColorForIndex(index, opacity = 1) {
+                    const colors = [
+                        `rgba(75, 192, 192, ${opacity})`, // Teal
+                        `rgba(255, 99, 132, ${opacity})`, // Red
+                        `rgba(54, 162, 235, ${opacity})`, // Blue
+                        `rgba(255, 206, 86, ${opacity})` // Yellow
+                    ];
+                    return colors[index % colors.length];
+                }
+                function saveToHistory(analysisData, title = "Single text analysis", isBatch = false, batchItems = []) {
+                    const historyItem = {
+                        id: Date.now().toString(),
+                        timestamp: new Date().toISOString(),
+                        title: title,
+                        text: analysisData.text || "", // Store the original text if available
+                        overall_sentiment: analysisData.overall_sentiment,
+                        sentiment_score: analysisData.sentiment_score,
+                        emotions: analysisData.emotions,
+                        keywords: analysisData.keywords,
+                        isBatch: isBatch
+                    };
+
+                    if (isBatch) {
+                        historyItem.items = batchItems;
+                        historyItem.positiveCount = batchItems.filter((item) => item.sentiment === "positive").length;
+                        historyItem.negativeCount = batchItems.filter((item) => item.sentiment === "negative").length;
+                        historyItem.neutralCount = batchItems.filter((item) => item.sentiment === "neutral").length;
+                    }
+
+                    const history = JSON.parse(localStorage.getItem("sentimentAnalysisHistory")) || [];
+                    history.unshift(historyItem); // Add new item to beginning of array
+                    localStorage.setItem("sentimentAnalysisHistory", JSON.stringify(history));
+                }
+
+                function resetMetricsDisplay() {
+                    evaluationData = [];
+                    DOMElements.evalList.innerHTML = "";
+                    DOMElements.evaluationDataList.classList.add("hidden");
+                    DOMElements.calculateMetricsButton.classList.add("hidden");
+                    DOMElements.metricsResultsSection.classList.add("hidden");
+                    hideError(DOMElements.evalErrorMessageDiv);
+
+                    // Reset Confusion Matrix
+                    document.getElementById("cm-pp").textContent = 0;
+                    document.getElementById("cm-pn").textContent = 0;
+                    document.getElementById("cm-p-neu").textContent = 0;
+                    document.getElementById("cm-np").textContent = 0;
+                    document.getElementById("cm-nn").textContent = 0;
+                    document.getElementById("cm-n-neu").textContent = 0;
+                    document.getElementById("cm-neu-p").textContent = 0;
+                    document.getElementById("cm-neu-n").textContent = 0;
+                    document.getElementById("cm-neu-neu").textContent = 0;
+
+                    // Reset Overall Metrics
+                    DOMElements.accuracyScoreSpan.textContent = "N/A";
+
+                    // Reset Class Metrics
+                    DOMElements.posPrecisionSpan.textContent = "N/A";
+                    DOMElements.posRecallSpan.textContent = "N/A";
+                    DOMElements.posF1Span.textContent = "N/A";
+                    DOMElements.negPrecisionSpan.textContent = "N/A";
+                    DOMElements.negRecallSpan.textContent = "N/A";
+                    DOMElements.negF1Span.textContent = "N/A";
+                    DOMElements.neuPrecisionSpan.textContent = "N/A";
+                    DOMElements.neuRecallSpan.textContent = "N/A";
+                    DOMElements.neuF1Span.textContent = "N/A";
+                }
+
+                function getChartImage(chartId) {
+                    const chartCanvas = document.getElementById(chartId);
+                    if (chartCanvas) {
+                        return chartCanvas.toDataURL("image/png");
+                    }
+                    return null;
+                }
+
+                // --- API Interaction ---
+                async function getSentimentAnalysis(text) {
+                    if (!API_KEY) {
+                        throw new Error("API Key not provided. Please add your key to the script file.");
+                    }
+                    const prompt = `Analyze the sentiment, emotional tone, and identify key sentiment-driving keywords in the following text. For keywords, specify their individual sentiment (positive, negative, or neutral) and their relevance score (0-1). Provide the response in a JSON object with the following structure: { "overall_sentiment": "positive/negative/neutral", "sentiment_score": 0.0, "emotions": {"anger": 0.0, "disgust": 0.0, "fear": 0.0, "joy": 0.0, "sadness": 0.0, "surprise": 0.0}, "keywords": [{"keyword": "string", "sentiment": "positive/negative/neutral", "relevance": 0.0}] } Text: "${text}"`;
+
+                    try {
+                        const result = await model.generateContent({
+                            contents: [{ role: "user", parts: [{ text: prompt }] }]
+                        });
+                        const responseText = result.response.text();
+                        // Clean the response to ensure it's valid JSON
+                        const jsonString = responseText.replace(/```json\n|```/g, "").trim();
+                        const analysis = JSON.parse(jsonString);
+                        if (analysis.overall_sentiment && analysis.emotions) {
+                            return analysis;
+                        } else {
+                            throw new Error("Invalid data structure received from API.");
+                        }
+                    } catch (error) {
+                        console.error("API call error:", error);
+                        throw new Error("Failed to get a valid response from the API. " + error.message);
+                    }
+                }
+
+                // --- UI Update Functions ---
+                function displaySentimentResults(data) {
+                    const { overall_sentiment, sentiment_score, emotions, keywords } = data;
+
+                    // Save the original text with the analysis data
+                    data.text = DOMElements.textInput.value.trim();
+
+                    // Save to history
+                    saveToHistory(data);
+
+                    DOMElements.overallSentimentSpan.textContent =
+                        overall_sentiment.charAt(0).toUpperCase() + overall_sentiment.slice(1);
+                    DOMElements.sentimentScoreSpan.textContent = sentiment_score.toFixed(2);
+
+                    // Update result box color based on overall sentiment
+                    DOMElements.sentimentResultBox.className = "result-box"; // Reset classes
+                    DOMElements.sentimentResultBox.classList.add(overall_sentiment);
+
+                    // Display emotional tone (strongest emotion)
+                    const sortedEmotions = Object.entries(emotions).sort(([, a], [, b]) => b - a);
+                    DOMElements.emotionalToneSpan.textContent =
+                        sortedEmotions.length > 0
+                            ? sortedEmotions[0][0].charAt(0).toUpperCase() + sortedEmotions[0][0].slice(1)
+                            : "N/A";
+
+                    // Display emotions as tags
+                    DOMElements.emotionsContainer.innerHTML = "";
+                    for (const [emotion, score] of sortedEmotions) {
+                        if (score > 0) {
+                            // Only show emotions with a score > 0
+                            const emotionTag = document.createElement("span");
+                            emotionTag.className = "emotion-tag";
+                            emotionTag.textContent = `${emotion.charAt(0).toUpperCase() + emotion.slice(1)} (${(score * 100).toFixed(0)}%)`;
+                            DOMElements.emotionsContainer.appendChild(emotionTag);
+                        }
+                    }
+
+                    // Display sentiment-driving keywords
+                    DOMElements.keywordsContainer.innerHTML = "";
+                    keywords.forEach((kw) => {
+                        const keywordSpan = document.createElement("span");
+                        keywordSpan.className = `inline-block px-3 py-1 rounded-full text-sm font-semibold mr-2 mb-2
+                                                 ${
+                                                     kw.sentiment === "positive"
+                                                         ? "bg-green-200 text-green-800"
+                                                         : kw.sentiment === "negative"
+                                                           ? "bg-red-200 text-red-800"
+                                                           : "bg-gray-200 text-gray-800"
+                                                 }`;
+                        keywordSpan.textContent = `${kw.keyword} (${(kw.relevance * 100).toFixed(0)}%)`;
+                        DOMElements.keywordsContainer.appendChild(keywordSpan);
+                    });
+
+                    // Update charts
+                    updateCharts(emotions);
+
+                    DOMElements.resultsSection.classList.remove("hidden");
+                    DOMElements.clearButton.classList.remove("hidden");
+                    DOMElements.downloadButtonWrapper.classList.remove("hidden"); // Show the new wrapper
+                    lastAnalysisResult = data; // Store data for download
+                }
+
+                function updateCharts(emotions) {
+                    const emotionLabels = Object.keys(emotions);
+                    const emotionData = Object.values(emotions).map((score) => score * 100); // Scale to 100
+
+                    // Destroy existing chart instances if they exist
+                    if (emotionBarChart) emotionBarChart.destroy();
+                    if (emotionPieChart) emotionPieChart.destroy();
+                    if (emotionRadarChart) emotionRadarChart.destroy();
+
+                    // Bar Chart
+                    const barCtx = document.getElementById("emotionBarChart").getContext("2d");
+                    emotionBarChart = new Chart(barCtx, {
+                        type: "bar",
+                        data: {
+                            labels: emotionLabels,
+                            datasets: [
+                                {
+                                    label: "Emotion Intensity (%)",
+                                    data: emotionData,
+                                    backgroundColor: ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF", "#FF9F40"],
+                                    borderColor: ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF", "#FF9F40"],
+                                    borderWidth: 1
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    max: 100 // Emotions are percentages
+                                }
+                            },
+                            plugins: {
+                                legend: {
+                                    display: false
+                                }
+                            }
+                        }
+                    });
+
+                    // Pie Chart
+                    const pieCtx = document.getElementById("emotionPieChart").getContext("2d");
+                    emotionPieChart = new Chart(pieCtx, {
+                        type: "pie",
+                        data: {
+                            labels: emotionLabels,
+                            datasets: [
+                                {
+                                    data: emotionData,
+                                    backgroundColor: ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF", "#FF9F40"],
+                                    hoverOffset: 4
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: "right"
+                                }
+                            }
+                        }
+                    });
+
+                    // Radar Chart
+                    const radarCtx = document.getElementById("emotionRadarChart").getContext("2d");
+                    emotionRadarChart = new Chart(radarCtx, {
+                        type: "radar",
+                        data: {
+                            labels: emotionLabels,
+                            datasets: [
+                                {
+                                    label: "Emotion Profile",
+                                    data: emotionData,
+                                    backgroundColor: "rgba(75, 192, 192, 0.2)",
+                                    borderColor: "rgba(75, 192, 192, 1)",
+                                    borderWidth: 1,
+                                    pointBackgroundColor: "rgba(75, 192, 192, 1)",
+                                    pointBorderColor: "#fff",
+                                    pointHoverBackgroundColor: "#fff",
+                                    pointHoverBorderColor: "rgba(75, 192, 192, 1)"
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                r: {
+                                    beginAtZero: true,
+                                    max: 100 // Emotions are percentages
+                                }
+                            },
+                            plugins: {
+                                legend: {
+                                    display: false
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // --- Tab Management ---
+                function setupMainTabs() {
+                    DOMElements.tabButtons.forEach((button) => {
+                        button.addEventListener("click", () => {
+                            DOMElements.tabButtons.forEach((btn) => btn.classList.remove("active"));
+                            DOMElements.tabContents.forEach((content) => content.classList.remove("active"));
+
+                            button.classList.add("active");
+                            document.getElementById(button.dataset.tab).classList.add("active");
+                        });
+                    });
+                }
+
+                function setupVizTabs() {
+                    DOMElements.vizTabButtons.forEach((button) => {
+                        button.addEventListener("click", () => {
+                            // Remove active class from all viz tab buttons
+                            DOMElements.vizTabButtons.forEach((btn) => btn.classList.remove("active"));
+                            // Hide all viz tab contents
+                            DOMElements.vizTabContents.forEach((content) => content.classList.remove("active"));
+
+                            // Add active class to clicked button
+                            button.classList.add("active");
+                            // Show the corresponding viz tab content
+                            document.getElementById(button.dataset.tab).classList.add("active");
+                        });
+                    });
+                }
+
+                // --- File Upload & Batch Processing ---
+                function setupFileUpload() {
+                    const handleFile = (file) => {
+                        if (!file) return;
+
+                        // Validate file type
+                        const validTypes = ["text/plain", "text/csv", "application/json"];
+                        if (!validTypes.includes(file.type) && !file.name.match(/\.(txt|csv|json)$/i)) {
+                            displayError(
+                                "Please upload a text file (.txt, .csv, or .json)",
+                                DOMElements.errorMessageDiv,
+                                DOMElements.errorTextSpan
+                            );
+                            return;
+                        }
+
+                        currentFile = file;
+                        DOMElements.fileInfo.textContent = `Selected: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+                        DOMElements.fileInfo.classList.remove("hidden");
+                        DOMElements.analyzeFileButton.disabled = false;
+                        hideError(DOMElements.errorMessageDiv);
+                        DOMElements.batchResults.classList.add("hidden");
+                        DOMElements.batchResultsList.innerHTML = "";
+                    };
+
+                    DOMElements.fileInput.addEventListener("change", (e) => handleFile(e.target.files[0]));
+                    DOMElements.fileUploadContainer.addEventListener("dragover", (e) => {
+                        e.preventDefault();
+                        DOMElements.fileUploadContainer.classList.add("drag-over");
+                    });
+                    DOMElements.fileUploadContainer.addEventListener("dragleave", () =>
+                        DOMElements.fileUploadContainer.classList.remove("drag-over")
+                    );
+                    DOMElements.fileUploadContainer.addEventListener("drop", (e) => {
+                        e.preventDefault();
+                        DOMElements.fileUploadContainer.classList.remove("drag-over");
+                        handleFile(e.dataTransfer.files[0]);
+                    });
+                }
+
+                async function analyzeBatch() {
+                    if (!currentFile) {
+                        displayError(
+                            "Please select a file first.",
+                            DOMElements.errorMessageDiv,
+                            DOMElements.errorTextSpan
+                        );
+                        return;
+                    }
+
+                    showLoading(DOMElements.fileButtonText, DOMElements.fileLoadingIndicator);
+                    hideError(DOMElements.errorMessageDiv);
+                    DOMElements.batchResultsList.innerHTML = ""; // Clear previous results
+                    DOMElements.batchResults.classList.remove("hidden");
+
+                    const reader = new FileReader();
+                    reader.onload = async (e) => {
+                        const text = e.target.result;
+                        let lines = text.split(/\r?\n/).filter((line) => line.trim() !== "");
+
+                        if (lines.length > BATCH_ANALYSIS_LIMIT) {
+                            displayError(
+                                `File contains ${lines.length} entries. Processing only the first ${BATCH_ANALYSIS_LIMIT} for demonstration.`,
+                                DOMElements.errorMessageDiv,
+                                DOMElements.errorTextSpan
+                            );
+                            lines = lines.slice(0, BATCH_ANALYSIS_LIMIT);
+                        }
+
+                        for (const line of lines) {
+                            const listItem = document.createElement("div");
+                            listItem.className = "batch-result-item flex items-center justify-between py-2";
+
+                            const textSpan = document.createElement("span");
+                            textSpan.textContent = line.length > 50 ? line.substring(0, 47) + "..." : line;
+                            textSpan.className = "text-gray-700 truncate flex-grow"; // Added truncate and flex-grow
+
+                            const sentimentSpan = document.createElement("span");
+                            sentimentSpan.className = "ml-4 px-3 py-1 rounded-full text-xs font-semibold";
+                            sentimentSpan.textContent = "Analyzing...";
+                            sentimentSpan.classList.add("bg-gray-200", "text-gray-800"); // Default styling
+
+                            listItem.appendChild(textSpan);
+                            listItem.appendChild(sentimentSpan);
+                            DOMElements.batchResultsList.appendChild(listItem);
+                            DOMElements.batchResultsList.scrollTop = DOMElements.batchResultsList.scrollHeight; // Scroll to bottom
+
+                            try {
+                                const result = await getSentimentAnalysis(line);
+                                sentimentSpan.textContent =
+                                    result.overall_sentiment.charAt(0).toUpperCase() +
+                                    result.overall_sentiment.slice(1);
+                                sentimentSpan.classList.remove("bg-gray-200", "text-gray-800"); // Remove default
+                                sentimentSpan.classList.add(
+                                    result.overall_sentiment === "positive"
+                                        ? "bg-green-200 text-green-800"
+                                        : result.overall_sentiment === "negative"
+                                          ? "bg-red-200 text-red-800"
+                                          : "bg-yellow-200 text-yellow-800" // Neutral often yellow/orange
+                                );
+                                // Store batch result
+                                batchResults.push({
+                                    text: line,
+                                    sentiment: result.overall_sentiment,
+                                    score: result.sentiment_score
+                                });
+                            } catch (error) {
+                                sentimentSpan.textContent = "Error" + error.message.substring(0, 30) + "...";
+                                sentimentSpan.classList.remove("bg-gray-200", "text-gray-800");
+                                sentimentSpan.classList.add("bg-red-200", "text-red-800");
+                                console.error(`Error analyzing line "${line}":`, error);
+                            }
+                        }
+                        // Save batch analysis to history
+                        if (batchResults.length > 0) {
+                            const batchTitle = `Batch analysis (${batchResults.length} items)`;
+                            const firstItem = batchResults[0];
+                            saveToHistory(
+                                {
+                                    overall_sentiment: firstItem.sentiment, // Just use first item's sentiment as placeholder
+                                    sentiment_score: firstItem.score,
+                                    emotions: {}, // Not available in batch mode
+                                    keywords: [] // Not available in batch mode
+                                },
+                                batchTitle,
+                                true,
+                                batchResults
+                            );
+                        }
+                        hideLoading(DOMElements.fileButtonText, DOMElements.fileLoadingIndicator);
+                    };
+                    reader.onerror = () => {
+                        displayError("Failed to read file.", DOMElements.errorMessageDiv, DOMElements.errorTextSpan);
+                        hideLoading(DOMElements.fileButtonText, DOMElements.fileLoadingIndicator);
+                    };
+                    reader.readAsText(currentFile);
+                }
+
+                // --- Download & Export Logic ---
+                function showDownloadOptions() {
+                    DOMElements.downloadOptions.classList.toggle("hidden");
+                }
+
+                async function generatePDFReport(analysisData) {
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF();
+
+                    doc.setFontSize(22);
+                    doc.setTextColor(30, 64, 175); // Indigo 700
+                    doc.text("Sentiment Analysis Report", doc.internal.pageSize.getWidth() / 2, 20, {
+                        align: "center"
+                    });
+
+                    doc.setFontSize(12);
+                    doc.setTextColor(0); // Black
+                    doc.line(20, 25, doc.internal.pageSize.getWidth() - 20, 25); // Horizontal line
+
+                    let yPos = 35;
+
+                    // Overall Sentiment
+                    doc.setFontSize(14);
+                    doc.setFont(undefined, "bold");
+                    doc.text("1. Overall Sentiment:", 20, yPos);
+                    doc.setFont(undefined, "normal");
+                    yPos += 8;
+                    doc.text(
+                        `Sentiment: ${analysisData.overall_sentiment.charAt(0).toUpperCase() + analysisData.overall_sentiment.slice(1)}`,
+                        25,
+                        yPos
+                    );
+                    yPos += 7;
+                    doc.text(`Score: ${analysisData.sentiment_score.toFixed(2)}`, 25, yPos);
+                    yPos += 7;
+                    doc.text(`Emotional Tone: ${DOMElements.emotionalToneSpan.textContent}`, 25, yPos);
+                    yPos += 15;
+
+                    // Emotions
+                    doc.setFontSize(14);
+                    doc.setFont(undefined, "bold");
+                    doc.text("2. Emotion Intensity:", 20, yPos);
+                    doc.setFont(undefined, "normal");
+                    yPos += 8;
+
+                    const emotionRows = Object.entries(analysisData.emotions).map(([emotion, score]) => [
+                        emotion.charAt(0).toUpperCase() + emotion.slice(1),
+                        (score * 100).toFixed(2) + "%"
+                    ]);
+
+                    doc.autoTable({
+                        startY: yPos,
+                        head: [["Emotion", "Intensity"]],
+                        body: emotionRows,
+                        theme: "grid",
+                        styles: { fontSize: 10, cellPadding: 2 },
+                        headStyles: { fillColor: [30, 64, 175], textColor: 255 }, // Indigo 700
+                        margin: { left: 20, right: 20 },
+                        didDrawPage: function (data) {
+                            // Footer
+                            let str = "Page " + doc.internal.getNumberOfPages();
+                            doc.setFontSize(10);
+                            doc.text(str, data.settings.margin.left, doc.internal.pageSize.height - 10);
+                        },
+                        columnStyles: {
+                            1: { halign: "right" }
+                        }
+                    });
+                    yPos = doc.autoTable.previous.finalY + 15;
+
+                    // Keywords
+                    doc.setFontSize(14);
+                    doc.setFont(undefined, "bold");
+                    doc.text("3. Sentiment-Driving Keywords:", 20, yPos);
+                    doc.setFont(undefined, "normal");
+                    yPos += 8;
+
+                    const keywordRows = analysisData.keywords.map((kw) => [
+                        kw.keyword,
+                        kw.sentiment.charAt(0).toUpperCase() + kw.sentiment.slice(1),
+                        (kw.relevance * 100).toFixed(2) + "%"
+                    ]);
+
+                    doc.autoTable({
+                        startY: yPos,
+                        head: [["Keyword", "Sentiment", "Relevance"]],
+                        body: keywordRows,
+                        theme: "grid",
+                        styles: { fontSize: 10, cellPadding: 2 },
+                        headStyles: { fillColor: [30, 64, 175], textColor: 255 }, // Indigo 700
+                        margin: { left: 20, right: 20 },
+                        didDrawPage: function (data) {
+                            // Footer
+                            let str = "Page " + doc.internal.getNumberOfPages();
+                            doc.setFontSize(10);
+                            doc.text(str, data.settings.margin.left, doc.internal.pageSize.height - 10);
+                        },
+                        columnStyles: {
+                            2: { halign: "right" }
+                        }
+                    });
+                    yPos = doc.autoTable.previous.finalY + 15;
+
+                    // Add charts as images
+                    doc.addPage();
+                    doc.setFontSize(14);
+                    doc.setFont(undefined, "bold");
+                    doc.text("4. Visualizations:", 20, 20);
+                    doc.setFont(undefined, "normal");
+
+                    const barChartImage = getChartImage("emotionBarChart");
+                    if (barChartImage) {
+                        doc.text("Emotion Intensity Chart:", 25, 30);
+                        doc.addImage(barChartImage, "PNG", 20, 35, 170, 80);
+                    }
+
+                    const pieChartImage = getChartImage("emotionPieChart");
+                    if (pieChartImage) {
+                        doc.text("Emotion Distribution Chart:", 25, 125);
+                        doc.addImage(pieChartImage, "PNG", 20, 130, 170, 80);
+                    }
+
+                    const radarChartImage = getChartImage("emotionRadarChart");
+                    if (radarChartImage) {
+                        doc.text("Emotion Profile Radar Chart:", 25, 220);
+                        doc.addImage(radarChartImage, "PNG", 20, 225, 170, 80);
+                    }
+
+                    doc.save("sentiment_report.pdf");
+                }
+
+                function downloadJSON(data) {
+                    const dataStr = JSON.stringify(data, null, 4);
+                    const blob = new Blob([dataStr], { type: "application/json" });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = "sentiment_analysis.json";
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                }
+
+                function downloadCSV(data) {
+                    let csv = "Metric,Value\n";
+                    csv += `Overall Sentiment,${data.overall_sentiment.charAt(0).toUpperCase() + data.overall_sentiment.slice(1)}\n`;
+                    csv += `Sentiment Score,${data.sentiment_score.toFixed(2)}\n`;
+                    csv += `Emotional Tone,${DOMElements.emotionalToneSpan.textContent}\n\n`;
+
+                    csv += "Emotion,Intensity\n";
+                    Object.entries(data.emotions).forEach(([emotion, score]) => {
+                        csv += `${emotion.charAt(0).toUpperCase() + emotion.slice(1)},${(score * 100).toFixed(2)}%\n`;
+                    });
+                    csv += "\n";
+
+                    csv += "Keyword,Sentiment,Relevance\n";
+                    data.keywords.forEach((kw) => {
+                        csv += `${kw.keyword},${kw.sentiment.charAt(0).toUpperCase() + kw.sentiment.slice(1)},${(kw.relevance * 100).toFixed(2)}%\n`;
+                    });
+
+                    const blob = new Blob([csv], { type: "text/csv" });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = "sentiment_analysis.csv";
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                }
+
+                // --- Model Evaluation Logic ---
+                async function addToEvalData() {
+                    const text = DOMElements.evalTextInput.value.trim();
+                    const trueSentiment = DOMElements.trueSentimentSelect.value;
+
+                    if (!text || !trueSentiment) {
+                        displayError(
+                            "Please enter text and select a true sentiment.",
+                            DOMElements.evalErrorMessageDiv,
+                            DOMElements.evalErrorTextSpan
+                        );
+                        return;
+                    }
+
+                    showLoading(DOMElements.evalButtonText, DOMElements.evalLoadingIndicator);
+                    hideError(DOMElements.evalErrorMessageDiv);
+
+                    try {
+                        const predictedAnalysis = await getSentimentAnalysis(text);
+                        evaluationData.push({
+                            text: text,
+                            true: trueSentiment,
+                            predicted: predictedAnalysis.overall_sentiment
+                        });
+                        renderEvaluationDataList();
+                        DOMElements.evalTextInput.value = "";
+                        DOMElements.trueSentimentSelect.value = "";
+                        DOMElements.evaluationDataList.classList.remove("hidden");
+                        DOMElements.calculateMetricsButton.classList.remove("hidden");
+                    } catch (error) {
+                        displayError(
+                            `Error analyzing text for evaluation: ${error.message}`,
+                            DOMElements.evalErrorMessageDiv,
+                            DOMElements.evalErrorTextSpan
+                        );
+                    } finally {
+                        hideLoading(DOMElements.evalButtonText, DOMElements.evalLoadingIndicator);
+                    }
+                }
+
+                function renderEvaluationDataList() {
+                    DOMElements.evalList.innerHTML = "";
+                    evaluationData.forEach((item, index) => {
+                        const li = document.createElement("li");
+                        li.className = "batch-result-item text-sm";
+                        const predictionClass = item.predicted === item.true ? "text-green-600" : "text-red-600";
+                        li.innerHTML = `
+                            <strong>Text:</strong> "${item.text.length > 70 ? item.text.substring(0, 67) + "..." : item.text}"<br>
+                            <strong>True:</strong> ${item.true.charAt(0).toUpperCase() + item.true.slice(1)},
+                            <strong>Predicted:</strong> <span class="${predictionClass}">${item.predicted.charAt(0).toUpperCase() + item.predicted.slice(1)}</span>
+                        `;
+                        DOMElements.evalList.appendChild(li);
+                    });
+                }
+
+                function calculateAndDisplayMetrics() {
+                    if (evaluationData.length === 0) {
+                        displayError(
+                            "No evaluation data collected.",
+                            DOMElements.evalErrorMessageDiv,
+                            DOMElements.evalErrorTextSpan
+                        );
+                        return;
+                    }
+
+                    DOMElements.metricsResultsSection.classList.remove("hidden");
+                    hideError(DOMElements.evalErrorMessageDiv);
+
+                    const labels = ["positive", "negative", "neutral"];
+                    const confusionMatrix = {
+                        positive: { positive: 0, negative: 0, neutral: 0 },
+                        negative: { positive: 0, negative: 0, neutral: 0 },
+                        neutral: { positive: 0, negative: 0, neutral: 0 }
+                    };
+
+                    let correctPredictions = 0;
+
+                    evaluationData.forEach((item) => {
+                        if (
+                            confusionMatrix[item.predicted] &&
+                            confusionMatrix[item.predicted][item.true] !== undefined
+                        ) {
+                            confusionMatrix[item.predicted][item.true]++;
+                        }
+                        if (item.predicted === item.true) {
+                            correctPredictions++;
+                        }
+                    });
+
+                    // Update confusion matrix table
+                    document.getElementById("cm-pp").textContent = confusionMatrix.positive.positive;
+                    document.getElementById("cm-pn").textContent = confusionMatrix.positive.negative;
+                    document.getElementById("cm-p-neu").textContent = confusionMatrix.positive.neutral;
+                    document.getElementById("cm-np").textContent = confusionMatrix.negative.positive;
+                    document.getElementById("cm-nn").textContent = confusionMatrix.negative.negative;
+                    document.getElementById("cm-n-neu").textContent = confusionMatrix.negative.neutral;
+                    document.getElementById("cm-neu-p").textContent = confusionMatrix.neutral.positive;
+                    document.getElementById("cm-neu-n").textContent = confusionMatrix.neutral.negative;
+                    document.getElementById("cm-neu-neu").textContent = confusionMatrix.neutral.neutral;
+
+                    // Calculate Overall Accuracy
+                    const accuracy = correctPredictions / evaluationData.length;
+                    DOMElements.accuracyScoreSpan.textContent = (accuracy * 100).toFixed(2) + "%";
+
+                    // Calculate Precision, Recall, F1-Score per class
+                    function calculateClassMetrics(className) {
+                        const tp = confusionMatrix[className][className];
+                        // FP for a class is the sum of predictions *as that class* where the true label was *different*.
+                        const fp = labels.reduce(
+                            (sum, trueLabel) =>
+                                sum + (trueLabel !== className ? confusionMatrix[className][trueLabel] || 0 : 0),
+                            0
+                        );
+                        // FN for a class is the sum of cases where the true label was *that class* but it was predicted *as a different class*.
+                        const fn = labels.reduce(
+                            (sum, predictedLabel) =>
+                                sum +
+                                (predictedLabel !== className ? confusionMatrix[predictedLabel][className] || 0 : 0),
+                            0
+                        );
+
+                        const precision = tp + fp === 0 ? 0 : tp / (tp + fp);
+                        const recall = tp + fn === 0 ? 0 : tp / (tp + fn);
+                        const f1 = precision + recall === 0 ? 0 : (2 * (precision * recall)) / (precision + recall);
+
+                        return { precision, recall, f1 };
+                    }
+
+                    const posMetrics = calculateClassMetrics("positive");
+                    DOMElements.posPrecisionSpan.textContent = (posMetrics.precision * 100).toFixed(2) + "%";
+                    DOMElements.posRecallSpan.textContent = (posMetrics.recall * 100).toFixed(2) + "%";
+                    DOMElements.posF1Span.textContent = (posMetrics.f1 * 100).toFixed(2) + "%";
+
+                    const negMetrics = calculateClassMetrics("negative");
+                    DOMElements.negPrecisionSpan.textContent = (negMetrics.precision * 100).toFixed(2) + "%";
+                    DOMElements.negRecallSpan.textContent = (negMetrics.recall * 100).toFixed(2) + "%";
+                    DOMElements.negF1Span.textContent = (negMetrics.f1 * 100).toFixed(2) + "%";
+
+                    const neuMetrics = calculateClassMetrics("neutral");
+                    DOMElements.neuPrecisionSpan.textContent = (neuMetrics.precision * 100).toFixed(2) + "%";
+                    DOMElements.neuRecallSpan.textContent = (neuMetrics.recall * 100).toFixed(2) + "%";
+                    DOMElements.neuF1Span.textContent = (neuMetrics.f1 * 100).toFixed(2) + "%";
+                }
+
+                // --- Event Listeners Setup ---
+                function setupEventListeners() {
+                    DOMElements.analyzeButton.addEventListener("click", async () => {
+                        console.log("Analyze button clicked");
+
+                        const text = DOMElements.textInput.value.trim();
+                        if (!text) {
+                            console.log("No text entered");
+                            displayError(
+                                "Please enter some text to analyze.",
+                                DOMElements.errorMessageDiv,
+                                DOMElements.errorTextSpan
+                            );
+                            return;
+                        }
+                        console.log("Starting analysis...");
+                        hideError(DOMElements.errorMessageDiv); // Clear error messages
+                        // Only hide results if a new analysis is starting from scratch (i.e., not a chart tab click)
+                        DOMElements.resultsSection.classList.add("hidden");
+                        DOMElements.clearButton.classList.add("hidden");
+                        DOMElements.downloadButtonWrapper.classList.add("hidden"); // Hide the new wrapper
+
+                        showLoading(DOMElements.buttonText, DOMElements.loadingIndicator);
+
+                        try {
+                            console.log("Calling getSentimentAnalysis..."); // Debug log
+                            const analysis = await getSentimentAnalysis(text);
+                            console.log("Analysis complete:", analysis); // Debug log
+                            displaySentimentResults(analysis);
+                        } catch (error) {
+                            console.error("Analysis error:", error); // Debug log
+                            displayError(error.message, DOMElements.errorMessageDiv, DOMElements.errorTextSpan);
+                        } finally {
+                            hideLoading(DOMElements.buttonText, DOMElements.loadingIndicator);
+                        }
+                    });
+
+                    DOMElements.clearButton.addEventListener("click", resetUI);
+
+                    DOMElements.downloadReportButton.addEventListener("click", (e) => {
+                        e.stopPropagation(); // Prevent document click from immediately closing options
+                        showDownloadOptions();
+                    });
+
+                    // Corrected: Close download options when clicking anywhere outside
+                    document.addEventListener("click", (e) => {
+                        if (!DOMElements.downloadButtonWrapper.contains(e.target)) {
+                            DOMElements.downloadOptions.classList.add("hidden");
+                        }
+                    });
+
+                    document.querySelectorAll(".download-option-btn").forEach((button) => {
+                        button.addEventListener("click", () => {
+                            DOMElements.downloadOptions.classList.add("hidden"); // Hide options after selection
+                            if (!lastAnalysisResult) {
+                                displayError(
+                                    "No analysis result to download.",
+                                    DOMElements.errorMessageDiv,
+                                    DOMElements.errorTextSpan
+                                );
+                                return;
+                            }
+                            const format = button.dataset.format;
+                            if (format === "pdf") {
+                                generatePDFReport(lastAnalysisResult);
+                            } else if (format === "json") {
+                                downloadJSON(lastAnalysisResult);
+                            } else if (format === "csv") {
+                                downloadCSV(lastAnalysisResult);
+                            }
+                        });
+                    });
+
+                    DOMElements.analyzeFileButton.addEventListener("click", handleFileAnalysis);
+                    DOMElements.analyzeFileButton.addEventListener("click", analyzeBatch);
+                    DOMElements.addToEvalButton.addEventListener("click", addToEvalData);
+                    DOMElements.calculateMetricsButton.addEventListener("click", calculateAndDisplayMetrics);
+                }
+
+                // --- Initialization ---
+                function init() {
+                    if (!API_KEY) {
+                        displayError(
+                            "API Key is missing. Please add your Google Gemini API key to the script.",
+                            DOMElements.errorMessageDiv,
+                            DOMElements.errorTextSpan
+                        );
+                    }
+
+                    // Ensure loading indicators are hidden on initial load
+                    hideLoading(DOMElements.buttonText, DOMElements.loadingIndicator);
+                    hideLoading(DOMElements.fileButtonText, DOMElements.fileLoadingIndicator);
+                    hideLoading(DOMElements.evalButtonText, DOMElements.evalLoadingIndicator);
+
+                    // Add to init() function
+                    setupComparativeAnalysis();
+                    setupMainTabs(); // For main tabs (Text, File, Evaluation)
+                    setupVizTabs(); // For visualization tabs (Emotion Intensity, Distribution, Profile)
+                    setupFileUpload();
+                    setupEventListeners();
+                    DOMElements.analyzeFileButton.disabled = true; // Initially disable file analysis button
+                }
+
+                // Run initialization when the DOM is fully loaded
+                init();
+            });
+        </script>
+    </body>
+</html>
