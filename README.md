@@ -2,7 +2,7 @@
 
 A web-based tool to analyze and report potential biases in datasets or algorithms.
 
-![Project Preview](https://bias-audit-report.netlify.app/)  <!-- Consider adding an actual screenshot -->
+🔗 **[Live Demo](https://sentimentv1.netlify.app/)**
 
 ## Features
 
