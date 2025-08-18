@@ -2,7 +2,7 @@
 
 A web application that analyzes text sentiment in real-time, providing insights into emotional tone and polarity.
 
-🔗 **[Live Demo](https://sentimentv1.netlify.app/)**
+🔗 **[Live Demo]** (https://sentimentv1.netlify.app/)
 
 ## Features
 
@@ -36,41 +36,57 @@ Access the live application at: [https://sentimentv1.netlify.app/](https://senti
 1. Clone the repository:
    ```bash
    git clone [repository-url]
-Install dependencies:
 
-bash
-npm install
-Run the development server:
+## Install dependencies:
+   - bash
+   - npm install
 
-bash
-npm start
-Usage
-Enter text in the input field
+## Run the development server:
+   - bash
+   - npm start
 
-View real-time sentiment analysis results
+## Usage
+* Enter text in the input field.
+* View real-time sentiment analysis results.
+* Explore detailed emotion breakdown.
+* (Optional) Save or export results.
 
-Explore detailed emotion breakdown
+## API Integration:
+* The Google Cloud Natural Language API.
 
-(Optional) Save or export results
+## Project Structure
+<img width="891" height="693" alt="image" src="https://github.com/user-attachments/assets/7d0a2c88-d14c-46f3-862d-af5bf4ada867" />
 
-API Integration
-[If your app uses any external APIs (like sentiment analysis APIs), describe them here]
+## Key Features Implemented for the Project Structure:
+* Frontend Structure:
+   - React-based components for modular UI.
+   - Chart.js integration for data visualization.
+   - Responsive design with CSS media queries.
 
-Project Structure
-[Optional: Add brief description of your project structure if complex]
+* Core Functionality:
+   - Text input processing.
+   - Sentiment analysis visualization.
+   - Historical data tracking.
 
-Contributing
+* Deployment:
+   - Netlify configuration.
+   - CI/CD pipeline setup.
+   - Environment variables management.
+
+* Performance Optimizations:
+   - Code splitting.
+   - Lazy loading components.
+   - Asset optimization.
+
+## Contributing
 Contributions are welcome! Please follow standard GitHub workflow:
+* Fork the project.
+* Create your feature branch.
+* Commit your changes.
+* Push to the branch.
+* Open a Pull Request.
 
-Fork the project
+## 📄 License
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-Create your feature branch
-
-Commit your changes
-
-Push to the branch
-
-Open a Pull Request
-
-License
-[Specify your license here, e.g., MIT, Apache 2.0]
+<div align="center"> <p>Built with ❤️ by Siyamthanda Dlakavu</p>
